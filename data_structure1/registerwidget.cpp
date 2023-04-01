@@ -1,6 +1,6 @@
 #include "registerwidget.h"
 #include "login.h"
-#include "writefile.h"
+#include "txtadd.h"
 #include <QPushButton>
 #include <QLabel>
 #include <QFile>
@@ -10,6 +10,7 @@
 #define OneWidth 100
 #define OneHeight 100
 extern QString InformationPath;
+extern QString UserFilePath;
 bool CmpUser(QString LineData,QString UserName)
 {
     QString NowUser="";
@@ -42,6 +43,16 @@ bool FindUser(QString Information,QString UserName)
     }
     return false;
 }
+bool IsRight(QString S)
+{
+    if(S.size()<6) return 0;
+    for(int i=0;i<S.size();i++)
+    {
+        if(S[i]==' '||S[i]=='\n'||S[i]=='\t')
+            return 0;
+    }
+    return 1;
+}
 RegisterWidget::RegisterWidget(QWidget *parent) : QWidget(parent)
 {
     this->resize(400,300);
@@ -54,6 +65,7 @@ RegisterWidget::RegisterWidget(QWidget *parent) : QWidget(parent)
     QPushButton *PushButtonRegister = new QPushButton("注册",this);
     PushButtonRegister->resize(PushButtonBack->width(),PushButtonBack->height());
     PushButtonRegister->move(this->width()/1.7,this->height()/1.5);
+    PushButtonRegister->setDefault(true);
 
     QLabel *LabelUser = new QLabel(this);
     LabelUser->setFont(QFont("宋体",WordSize));
@@ -96,7 +108,12 @@ RegisterWidget::RegisterWidget(QWidget *parent) : QWidget(parent)
         QString User = LineEditUser->text();
         QString Pwd = LineEditPwd->text();
         QString PwdAgain =LineEditPwdAgain->text();
-        if(FindUser(GetInformation(),User)==false)
+        if(!IsRight(User)||!IsRight(Pwd))
+        {
+            QMessageBox::critical(this, tr("注册失败"),  tr("用户名或密码不符合要求"));
+        }
+        else
+        if(FindUser(GetInformation(InformationPath),User)==false)
         {
             if(Pwd!=PwdAgain)
             {
@@ -105,9 +122,10 @@ RegisterWidget::RegisterWidget(QWidget *parent) : QWidget(parent)
             else
             {
                 QMessageBox::information(this, tr("提示"),  tr("注册成功"));
-                QFile file;
-                file.setFileName(InformationPath);
-                WriteFile(&file,User+" "+Pwd);
+                QFile file(UserFilePath+"\\"+User+".txt");
+                file.open(QIODevice::WriteOnly);
+                file.close();
+                TxtAdd(InformationPath,User+" "+Pwd+" 0\n");
                 LineEditUser->clear();
                 emit this->back_login();
             }

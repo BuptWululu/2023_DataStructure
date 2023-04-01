@@ -19,5 +19,5 @@ private:
     Ui::login *ui;
 };
 
-QString GetInformation();
+QString GetInformation(QString Path);
 #endif // LOGIN_H

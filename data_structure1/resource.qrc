@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>image/地图.png</file>
+        <file>UserInformation.txt</file>
+        <file>pushbutton.qss</file>
+    </qresource>
+</RCC>

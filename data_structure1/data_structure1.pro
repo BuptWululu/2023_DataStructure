@@ -27,14 +27,31 @@ SOURCES += \
         main.cpp \
         login.cpp \
     registerwidget.cpp \
-    writefile.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    navigation.cpp \
+    dijsktra.cpp \
+    setlabeltext.cpp \
+    getpath.cpp \
+    journal.cpp \
+    txtadd.cpp \
+    adddatatime.cpp \
+    rootwindow.cpp
 
 HEADERS += \
         login.h \
     registerwidget.h \
-    writefile.h \
-    mainwindow.h
+    mainwindow.h \
+    navigation.h \
+    dijsktra.h \
+    setlabeltext.h \
+    getpath.h \
+    journal.h \
+    txtadd.h \
+    adddatatime.h \
+    rootwindow.h
 
 FORMS += \
         login.ui
+
+RESOURCES += \
+    resource.qrc

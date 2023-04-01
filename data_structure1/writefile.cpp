@@ -1,14 +1,16 @@
 #include <QFile>
 #include <QString>
 #include <QTextStream>
+#include <QDebug>
 #include "writefile.h"
 #include "login.h"
-void WriteFile(QFile *file,QString data)
+void WriteFile(QString Path,QString data)
 {
-    data=GetInformation()+data;
-    if((*file).open(QIODevice::WriteOnly |QIODevice::Text)){
-            QTextStream stream(file);
+    data=GetInformation(Path)+data;
+    QFile file(Path);
+    if(file.open(QIODevice::WriteOnly |QIODevice::Text)){
+            QTextStream stream(&file);
             stream<<data<<"\n";
-            (*file).close();
+            file.close();
         }
 }

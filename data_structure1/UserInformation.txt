@@ -1,13 +1,3 @@
-root 123
-user 1
-user2 12
-user3 123
-user4 1234
-aa nn
-22 22
-rr 123
-hongyubin 123
-huuu 1341
-qqq 
-aaaaa aa
-bb aa
+root 123 1
+12 12 0
+111111 111111 0

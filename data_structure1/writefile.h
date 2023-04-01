@@ -3,6 +3,6 @@
 #include <QFile>
 #include <QString>
 
-void WriteFile(QFile *file,QString data);
+//void WriteFile(QString Path,QString data);
 
 #endif // WRITEFILE_H

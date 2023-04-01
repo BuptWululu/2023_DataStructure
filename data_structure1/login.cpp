@@ -1,11 +1,15 @@
 #include "login.h"
 #include "ui_login.h"
 #include "registerwidget.h"
+#include "adddatatime.h"
 #include "mainwindow.h"
+#include "rootwindow.h"
+#include "txtadd.h"
 #include <QPushButton>
 #include <QDebug>
 #include <QLabel>
 #include <QLineEdit>
+#include <QStringList>
 #include <QFile>
 #include <QMessageBox>
 #include <bits/stdc++.h>
@@ -13,53 +17,40 @@ using std::string;
 #define WordSize 15
 #define OneWidth 100
 #define OneHeight 100
-QString InformationPath="E:\\QT_test\\data_structure1\\UserInformation.txt";
-QString GetInformation()
+extern QString InformationPath;
+extern QString JournalPath;
+QString User;
+bool isRoot = 0;
+QString GetInformation(QString Path)
 {
-    QFile *File = new QFile(InformationPath);
+    QFile *File = new QFile(Path);
     File->open(QIODevice::ReadOnly|QIODevice::Text);
-    QString Data = QString(File->readAll());
+    QString Data;
+    if(Path == JournalPath)
+        Data = QString::fromLocal8Bit(File->readAll());
+    else
+        Data = QString(File->readAll());
     return Data;
 }
 bool CmpUserPwd(QString LineData,QString UserName,QString UserPwd)
 {
-    QString NowUser="";
-    QString NowPwd="";
-    int pos;
-    for(pos=0;;pos++)
+    QStringList Line = LineData.split(" ");
+    if(Line[0]==UserName&&Line[1]==UserPwd)
     {
-        if(LineData[pos]=='\n'||LineData[pos]==' ')
-        {
-            pos++;
-            break;
-        }
-        NowUser=NowUser+LineData[pos];
-    }
-    for(;;pos++)
-    {
-        if(LineData[pos]=='\n'||LineData[pos]==' ')
-            break;
-        NowPwd=NowPwd+LineData[pos];
-    }
-    if(NowUser==UserName&&NowPwd==UserPwd)
+        isRoot = (bool)Line[2].toInt();
         return true;
+    }
     else
         return false;
 }
 bool FindUserPwd(QString Information,QString UserName,QString UserPwd)
 {
-    QString LineData="";
+    QStringList LineData = Information.split("\n");
 
-    for(int i=0;i<Information.size();i++)
+    for(int i=0;i<LineData.size();i++)
     {
-        LineData=LineData+Information[i];
-        if(Information[i]=='\n')
-        {
-            if(CmpUserPwd(LineData,UserName,UserPwd)==true)
-                return true;
-            LineData="";
-            continue;
-        }
+        if(CmpUserPwd(LineData[i],UserName,UserPwd)==true)
+            return true;
     }
     return false;
 }
@@ -70,7 +61,7 @@ login::login(QWidget *parent) :
     ui->setupUi(this);
 
     //设置登录窗口大小
-    this->resize(400,300);
+    this->setFixedSize(400,300);
 
     //设置窗口标题
     this->setWindowTitle("用户登录");
@@ -80,6 +71,7 @@ login::login(QWidget *parent) :
     PushbuttonLogin->setText("登录");
     PushbuttonLogin->resize(this->width()/OneWidth*20,this->height()/OneHeight*10);
     PushbuttonLogin->move(this->width()/OneWidth*22,this->height()/OneHeight*67);
+    PushbuttonLogin->setDefault(true);
 
     QPushButton *PushButtonRegister = new QPushButton(this);
     PushButtonRegister->setText("注册");
@@ -109,17 +101,24 @@ login::login(QWidget *parent) :
     LineEditPwd->move(this->width()/OneWidth*40,this->height()/OneHeight*40);
     LineEditPwd->setEchoMode(QLineEdit::Password);
     //点击登录按钮
-    MainWindow *MaWindow = new MainWindow;
 
     connect(PushbuttonLogin,&QPushButton::clicked,[=](){
-       QString User = LineEditUser->text();
+       User = LineEditUser->text();
        QString Pwd = LineEditPwd->text();
-       if(FindUserPwd(GetInformation(),User,Pwd))
+       if(FindUserPwd(GetInformation(InformationPath),User,Pwd))
        {
+           TxtAdd(JournalPath,AddDataTime("用户 "+User+" 登录成功\n"));
            this->hide();
-           MaWindow->show();
-           qDebug()<<"登录成功"<<endl;
-           //qDebug()<<"成功"<<endl;
+           if(isRoot == true)
+           {
+               RootWindow *RtWindow = new RootWindow;
+               RtWindow->show();
+           }
+           else
+           {
+               MainWindow *MnWindow = new MainWindow;
+               MnWindow->show();
+           }
        }
        else
        {
