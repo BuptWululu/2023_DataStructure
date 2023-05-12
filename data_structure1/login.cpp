@@ -19,6 +19,8 @@ using std::string;
 #define OneHeight 100
 extern QString InformationPath;
 extern QString JournalPath;
+extern QString MapPath;
+extern QString EdgePath;
 QString User;
 bool isRoot = 0;
 QString GetInformation(QString Path)
@@ -26,7 +28,7 @@ QString GetInformation(QString Path)
     QFile *File = new QFile(Path);
     File->open(QIODevice::ReadOnly|QIODevice::Text);
     QString Data;
-    if(Path == JournalPath)
+    if(Path != MapPath && Path != EdgePath)
         Data = QString::fromLocal8Bit(File->readAll());
     else
         Data = QString(File->readAll());
@@ -107,7 +109,7 @@ login::login(QWidget *parent) :
        QString Pwd = LineEditPwd->text();
        if(FindUserPwd(GetInformation(InformationPath),User,Pwd))
        {
-           TxtAdd(JournalPath,AddDataTime("用户 "+User+" 登录成功\n"));
+           TxtAdd(JournalPath,AddDataTime("用户 "+User+" 登录成功\n"),1);
            this->hide();
            if(isRoot == true)
            {

@@ -1,23 +1,45 @@
 #include "login.h"
 #include <QApplication>
 #include <QString>
+#include <QStringList>
 #include <QTextCodec>
 #include <QFile>
 #include <QDebug>
 #include <QWidget>
-QString MainPath = "E:\\QT_test\\data_structure1\\";
-QString InformationPath = MainPath+"UserInformation.txt";
-QString MapPath = MainPath+"Map.txt";
-QString EdgePath = MainPath+"Edge.txt";
-QString JournalPath = MainPath+"Journal.txt";
-QString UserFilePath = MainPath+"User";
+QString MainPath;
+QString InformationPath;
+QString MapPath;
+QString EdgePath;
+QString JournalPath;
+QString TimePath;
+QString UserPath,UserCurriculumPath,UserExtracurricularPath,UserTemporaryPath,UserAlarmPath;
+QString UserExamPath;
+QString AddCurriculumPath;
 QString MapFirstLine = "地点\tX\tY\n";
 QString EdgeFirstLine = "起点\t终点\t拥挤度\n";
+int BeginYear = 2023,BeginMonth = 2,BeginDay = 20;
+void SetPath()
+{
+    MainPath = QCoreApplication::applicationDirPath();
+    QStringList Line = MainPath.split("/");
+    MainPath = "";
+    for(int i = 0;i < Line.size() - 2;i++)
+        MainPath = MainPath + Line[i] + "\\";
+    MainPath = MainPath + "data_structure1\\";
+    UserPath = MainPath + "User";
+    InformationPath = MainPath+"UserInformation.txt";
+    MapPath = MainPath+"Map.txt";
+    EdgePath = MainPath+"Edge.txt";
+    JournalPath = MainPath+"Journal.txt";
+    TimePath = MainPath+"Time.txt";
+    AddCurriculumPath = MainPath+"AddCurriculum.txt";
+}
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    QTextCodec* codec = QTextCodec::codecForName("GB2312");
+    QTextCodec* codec = QTextCodec::codecForName("GBK");
     QTextCodec::setCodecForLocale(codec);
+    SetPath();
     qApp->setStyleSheet(
                               "QComboBox{"
                               "color:#666666;"

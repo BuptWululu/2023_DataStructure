@@ -35,7 +35,16 @@ SOURCES += \
     journal.cpp \
     txtadd.cpp \
     adddatatime.cpp \
-    rootwindow.cpp
+    rootwindow.cpp \
+    getweek.cpp \
+    addfile.cpp \
+    addcurriculum.cpp \
+    listwidget.cpp \
+    addwidget.cpp \
+    alarmwidget.cpp \
+    optwidget.cpp \
+    txtdelete.cpp \
+    alarmnavigation.cpp
 
 HEADERS += \
         login.h \
@@ -48,7 +57,16 @@ HEADERS += \
     journal.h \
     txtadd.h \
     adddatatime.h \
-    rootwindow.h
+    rootwindow.h \
+    getweek.h \
+    addfile.h \
+    addcurriculum.h \
+    listwidget.h \
+    addwidget.h \
+    alarmwidget.h \
+    optwidget.h \
+    txtdelete.h \
+    alarmnavigation.h
 
 FORMS += \
         login.ui

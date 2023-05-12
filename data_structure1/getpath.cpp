@@ -40,17 +40,16 @@ int GetDirection(int pre,int now)
 }
 int Para;
 QString Pre;
-QString GetPath(int *PrePosition, int now)
+QString GetPath(int *PrePosition, int now,int BeginPara )
 {
     if(!PrePosition[now])
     {
         Pre = "";
-        Para = 0;
+        Para = BeginPara;
         return "";
     }
     QString dir = Dir[GetDirection(PrePosition[now],now)];
-    QString line = GetPath(PrePosition,PrePosition[now]);
-
+    QString line = GetPath(PrePosition,PrePosition[now],BeginPara);
     if(Pre==dir)
     {
        int pos,len=0;

@@ -11,6 +11,15 @@ INPUT(
 ./debug\txtadd.o
 ./debug\adddatatime.o
 ./debug\rootwindow.o
+./debug\getweek.o
+./debug\addfile.o
+./debug\addcurriculum.o
+./debug\listwidget.o
+./debug\addwidget.o
+./debug\alarmwidget.o
+./debug\optwidget.o
+./debug\txtdelete.o
+./debug\alarmnavigation.o
 ./debug\qrc_resource.o
 ./debug\moc_login.o
 ./debug\moc_registerwidget.o
@@ -18,4 +27,10 @@ INPUT(
 ./debug\moc_navigation.o
 ./debug\moc_journal.o
 ./debug\moc_rootwindow.o
+./debug\moc_addcurriculum.o
+./debug\moc_listwidget.o
+./debug\moc_addwidget.o
+./debug\moc_alarmwidget.o
+./debug\moc_optwidget.o
+./debug\moc_alarmnavigation.o
 );

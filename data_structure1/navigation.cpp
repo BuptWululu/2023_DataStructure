@@ -31,15 +31,11 @@ extern QString User;
 extern int PrePosition[N];
 extern double MinDist;
 int TotArea=0;
-int WayFlag=0;
 int StringHash[Size];
 const int Mod = 999983;
 struct Position Area[N];
 struct Edge *Node[N];
-QLineEdit *LineEditFrom;
-QLineEdit *LineEditEnd;
-QLabel *LabelInformation;
-void SetPositionInformation(Position *now,QString data,int flag)
+void navigation::SetPositionInformation(Position *now,QString data,int flag)
 {
     if(flag==0)
         now->Name=data;
@@ -49,7 +45,7 @@ void SetPositionInformation(Position *now,QString data,int flag)
         now->y=data.toInt();
     return ;
 }
-void SetPosition(QString data)
+void navigation::SetPosition(QString data)
 {
     Position now;
     int flag=0;
@@ -68,26 +64,26 @@ void SetPosition(QString data)
     Area[++TotArea]=now;
     return ;
 }
-int GetHash(QString S)
+int navigation::GetHash(QString S)
 {
     long long sco=1;
     for(int i=0;i<S.size();i++)
         sco=(sco * S[i].unicode()*13) % Mod;
     return sco;
 }
-inline int GetId(QString S)
+inline int navigation::GetId(QString S)
 {
     return StringHash[GetHash(S)];
 }
 
 navigation::navigation(QWidget *parent) : QWidget(parent)
 {
-    QLabel *LabelStart = new QLabel(this);
+    LabelStart = new QLabel(this);
     LabelStart->setFont(QFont("宋体",WordSize));
     LabelStart->setText("起点：");
     LabelStart->move(540,155);
 
-    QLabel *LabelEnd = new QLabel(this);
+    LabelEnd = new QLabel(this);
     LabelEnd->setFont(QFont("宋体",WordSize));
     LabelEnd->setText("终点：");
     LabelEnd->move(540,255);
@@ -112,7 +108,7 @@ navigation::navigation(QWidget *parent) : QWidget(parent)
         }
     }
     this->setFixedSize(1000,700);
-    QPushButton *PushButtonShort = new QPushButton("最短距离",this);
+    PushButtonShort = new QPushButton("最短距离",this);
     PushButtonShort->resize(PushButtonWidth,PushButtonHeight);
     PushButtonShort->move(700,350);
 
@@ -147,7 +143,7 @@ navigation::navigation(QWidget *parent) : QWidget(parent)
     {
         PositionList<<Area[i].Name;
     }
-    QCompleter *PositionCompleter = new QCompleter(PositionList);
+    PositionCompleter = new QCompleter(PositionList);
     LineEditFrom->setCompleter(PositionCompleter);
     LineEditEnd->setCompleter(PositionCompleter);
 
@@ -157,7 +153,7 @@ navigation::navigation(QWidget *parent) : QWidget(parent)
 
 
 
-void Connect(QString Start,QString End,int Congestion)
+void navigation::Connect(QString Start,QString End,int Congestion)
 {
     int St=GetId(Start),Ed=GetId(End);
     //qDebug()<<St<<" "<<Ed;
@@ -169,7 +165,7 @@ void Connect(QString Start,QString End,int Congestion)
     Node[St]->next=temp;
     return ;
 }
-void SetEdge(QString data)
+void navigation::SetEdge(QString data)
 {
     QString Start="";
     QString End="";
@@ -196,7 +192,6 @@ void SetEdge(QString data)
             }
         }
     }
-    //qDebug()<<Start<<" "<<End<<"}}";
     Connect(Start,End,Congestion.toInt());
     Connect(End,Start,Congestion.toInt());
     return ;
@@ -248,7 +243,7 @@ void navigation::paintEvent(QPaintEvent *event)
         int PaintNow=GetId(end);
         QString Pass = GetPath(PrePosition,PaintNow);
         TxtAdd(JournalPath,AddDataTime("用户 "+User+" 进行了从 "+from+" 到 "+end+" 的最短距离导航\n"
-                                       +Pass));
+                                       +Pass),1);
         SetLabelText(LabelInformation,"导航开始！\n"+Pass);
         while (PrePosition[PaintNow]) {
             painter->drawLine(Area[PaintNow].x,Area[PaintNow].y,

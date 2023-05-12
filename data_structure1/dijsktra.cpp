@@ -13,8 +13,13 @@ double GetDist(Position a,Position b)
 {
     return std::sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
 }
-void FindShortest(int Start,int End)
+double FindShortest(int Start,int End)
 {
+    if(Start == End)
+    {
+        MinDist = 0;
+        return 0;
+    }
     for(int i=1;i<=TotArea;i++)
     {
         ShortestDist[i] = MaxD;
@@ -50,5 +55,5 @@ void FindShortest(int Start,int End)
     }
     //qDebug()<<ShortestDist[End]<<"@@";
     MinDist = ShortestDist[End];
-    return ;
+    return MinDist;
 }

@@ -1,16 +1,20 @@
 #include "registerwidget.h"
 #include "login.h"
+#include "addfile.h"
 #include "txtadd.h"
 #include <QPushButton>
 #include <QLabel>
 #include <QFile>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QDir>
 #define WordSize 15
 #define OneWidth 100
 #define OneHeight 100
 extern QString InformationPath;
-extern QString UserFilePath;
+extern QString MainPath;
+extern QString UserCurriculumPath;
+extern QString UserExamPath;
 bool CmpUser(QString LineData,QString UserName)
 {
     QString NowUser="";
@@ -122,10 +126,14 @@ RegisterWidget::RegisterWidget(QWidget *parent) : QWidget(parent)
             else
             {
                 QMessageBox::information(this, tr("提示"),  tr("注册成功"));
-                QFile file(UserFilePath+"\\"+User+".txt");
-                file.open(QIODevice::WriteOnly);
-                file.close();
-                TxtAdd(InformationPath,User+" "+Pwd+" 0\n");
+                QDir dir(MainPath+"User\\"+User);
+                    dir.mkdir(MainPath+"User\\"+User);
+                AddFile(MainPath+"User\\"+User+"\\Curriculum.txt");
+                AddFile(MainPath+"User\\"+User+"\\Extracurricular.txt");
+                AddFile(MainPath+"User\\"+User+"\\Temporary.txt");
+                AddFile(MainPath+"User\\"+User+"\\Exam.txt");
+                AddFile(MainPath+"User\\"+User+"\\Alarm.txt","\n2\n");
+                TxtAdd(InformationPath,User+" "+Pwd+" 0\n",1);
                 LineEditUser->clear();
                 emit this->back_login();
             }
