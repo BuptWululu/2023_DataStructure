@@ -1,6 +1,7 @@
 #include "addcurriculum.h"
 #include "login.h"
 #include "txtadd.h"
+#include "adddatatime.h"
 #include <login.h>
 #include <QLabel>
 #include <QMessageBox>
@@ -19,6 +20,8 @@ QFont ft;
 std::map<QString,int> WeekNumber;
 extern QString InformationPath;
 extern QString MainPath;
+extern QString User;
+extern QString JournalPath;
 extern QString UserPath;
 extern int TotWeek,BeginYear,BeginMonth,BeginDay;
 extern QString AddCurriculumPath;
@@ -144,7 +147,7 @@ bool Earlier(QString Time1,QString Time2)
 {
     QStringList list1 = Time1.split(":");
     QStringList list2 = Time2.split(":");
-    return list1[0].toInt()<list2[0].toInt();
+    return list1[0].toInt()<=list2[0].toInt();
 }
 bool AddCurriculumError(QString Name,int BeginWeek,int EndWeek,int Week,QString BeginHour,QString EndHour)
 {
@@ -174,6 +177,7 @@ int SetCurriculum(QPushButton *isChooseUser,QLineEdit *ChooseUser,QLineEdit *Nam
     QString EndWeek = EWeek->currentText().remove(EWeek->currentText().size()-1,1);
     QString data = Name->text()+" "+BeginWeek+" "+EndWeek+" "+QString::number(WeekNumber[Time[0]->currentText()])+" "
             +Time[1]->currentText()+" "+Time[2]->currentText()+" "+Style->text()+" "+Position->text()+"\n";
+    //qDebug()<<data;
     if(isChooseUser->text()=="单个用户")
         if(FindUser(GetInformation(InformationPath),ChooseUser->text())==false)
             return 1;
@@ -190,11 +194,13 @@ int SetCurriculum(QPushButton *isChooseUser,QLineEdit *ChooseUser,QLineEdit *Nam
         DirList.removeOne("..");
         for(int i = 0;i < DirList.size();i++)
             WriteCurriculum(DirList[i],"Curriculum "+data);
+        TxtAdd(JournalPath,AddDataTime("管理员 "+ User + " 为所有用户添加课程 " + Name->text() + "\n"),1);
     }
     if(isChooseUser->text()=="单个用户")
     {
         TxtAdd(AddCurriculumPath,ChooseUser->text()+" "+data,1);
         WriteCurriculum(ChooseUser->text(),"Curriculum "+data);
+        TxtAdd(JournalPath,AddDataTime("管理员 "+ User + " 为用户 " + ChooseUser->text() + " 添加课程 " + Name->text() + "\n"),1);
     }
     return 0;
 }
@@ -203,6 +209,9 @@ AddCurriculum::AddCurriculum(QWidget *parent) : QWidget(parent)
     WeekNumber["星期一"]=1,WeekNumber["星期二"]=2,WeekNumber["星期三"]=3,WeekNumber["星期四"]=4;
     WeekNumber["星期五"]=5,WeekNumber["星期六"]=6,WeekNumber["星期日"]=7;
     ft.setPointSize(14);
+    this->setWindowTitle("添加课程");
+    this->setWindowFlags(this->windowFlags() | Qt::WindowStaysOnTopHint);
+    this->setWindowModality(Qt::ApplicationModal);
     this->resize(400,600);
     LabelInit(this);
 
@@ -263,9 +272,7 @@ AddCurriculum::AddCurriculum(QWidget *parent) : QWidget(parent)
     connect(PushButtonAdd,&QPushButton::clicked,[=](){
         int tag = SetCurriculum(PushButtonChooseUser,LineEditChooseUser,LineEditName,BeginWeek,EndWeek,ComboBoxTime,PushButtonStyle,LineEditPosition);
         if(tag == 0)
-        {
             QMessageBox::information(this, tr("添加成功"),  tr("添加课程成功"));
-        }
         if(tag == 1)
             QMessageBox::critical(this, tr("添加失败"),  tr("用户不存在"));
         if(tag == 2)

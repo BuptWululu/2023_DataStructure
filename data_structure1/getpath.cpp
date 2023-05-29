@@ -1,5 +1,6 @@
 #include "getpath.h"
 #include "navigation.h"
+#include "adddatatime.h"
 #include <QString>
 #include <QDebug>
 #define N 200

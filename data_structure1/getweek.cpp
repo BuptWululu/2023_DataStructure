@@ -1,5 +1,6 @@
 #include "getweek.h"
 #include "mainwindow.h"
+#include "adddatatime.h"
 #include <QDebug>
 #include <QComboBox>
 extern struct SerTime BeginTime;

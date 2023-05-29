@@ -1,6 +1,6 @@
 #include "alarmnavigation.h"
 #include "login.h"
-
+#include "adddatatime.h"
 #include <QDebug>
 #include <QLineEdit>
 #include <QLabel>
@@ -9,35 +9,42 @@
 #include <QScrollArea>
 #include <QPixmap>
 #include <vector>
+#include <QTimer>
 #define N 200
 #define AlarmSize 1000
 #define Size 1000000
+extern QTimer *Tim;
 extern struct Position Area[N];
 extern QString EdgeFirstLine;
 extern QString UserAlarmPath;
 extern QString EdgePath;
+extern QString JournalPath;
+extern QString User;
 extern int StringHash[Size];
 extern int PrePosition[N];
 extern int TotArea;
 extern struct Edge *Node[N];
+extern bool CurriculumNavigation;
+extern QString CurriculumNavigationPosition ;
 bool VisRow[AlarmSize];
 AlarmNavigation::AlarmNavigation(int preRow, int nowRow)
 {
     PreRow = preRow;
     NowRow = nowRow;
+    this->setWindowTitle("导航");
     Init();
     LineEditInit(LineEditStart,600,150);
 }
 
 void AlarmNavigation::Init()
 {
-    delete LineEditFrom;
-    delete LineEditEnd;
-    delete LabelEnd;
+    LabelStart->setText("起点：");
+    LineEditInformation->hide();
+    LineEditBegin->hide();
+    LabelBegin->hide();
     PushButtonShort->setText("开始导航");
     PushButtonShort->disconnect();
     connect(PushButtonShort,&QPushButton::clicked,[=](){
-        //qDebug()<<"SB";
         QString Start = LineEditStart->text();
         if(!GetId(Start))
         {
@@ -55,6 +62,11 @@ void AlarmNavigation::LineEditInit(QLineEdit *L, int MoveWidth, int MoveHeight, 
     L->move(MoveWidth,MoveHeight);
     L->resize(SizeWidth,SizeHeight);
     L->setCompleter(PositionCompleter);
+}
+
+void AlarmNavigation::closeEvent(QCloseEvent *event)
+{
+    return ;
 }
 
 void AlarmNavigation::paintEvent(QPaintEvent *event)
@@ -98,8 +110,34 @@ void AlarmNavigation::paintEvent(QPaintEvent *event)
     if(WayFlag==1)
     {
         WayFlag = 0;
-        PassPositionList.clear();
         qDebug()<<"开始绘图";
+        if(CurriculumNavigation)
+        {
+            FindShortest(GetId(LineEditStart->text()),GetId(CurriculumNavigationPosition));
+            int PaintNow=GetId(CurriculumNavigationPosition);
+            QString Pass = GetPath(PrePosition,PaintNow);
+            while (PrePosition[PaintNow]) {
+                painter->drawLine(Area[PaintNow].x,Area[PaintNow].y,
+                                  Area[PrePosition[PaintNow]].x,Area[PrePosition[PaintNow]].y);
+                PaintNow = PrePosition[PaintNow];
+            }
+            painter->end();
+
+            QWidget *BigW = new QWidget(this);
+            BigW->resize(500,300);
+            BigW->move(500,400);
+            QScrollArea *ScrollLine = new QScrollArea(BigW);
+            ScrollLine->setGeometry(0,0,BigW->width(),BigW->height());
+            QWidget *SmallW = new QWidget(BigW);
+            QLabel *LabelText = new QLabel(SmallW);
+            SetLabelText(LabelText,"导航开始！\n"+Pass + "\n到达目的地: " + CurriculumNavigationPosition);
+            LabelText->adjustSize();
+            ScrollLine->setWidget(SmallW);
+            SmallW->setGeometry(0,0,LabelText->width(),LabelText->height());
+            BigW->show();
+            return ;
+        }
+        PassPositionList.clear();
         QStringList EmptyList;
         FindAllCombination(EmptyList,PreRow);
         FindAimPositionList();
@@ -122,7 +160,7 @@ void AlarmNavigation::paintEvent(QPaintEvent *event)
         ScrollLine->setGeometry(0,0,BigW->width(),BigW->height());
         QWidget *SmallW = new QWidget(BigW);
         QLabel *LabelText = new QLabel(SmallW);
-        SetLabelText(LabelText,"导航开始！\n"+Tip);
+        SetLabelText(LabelText,"导航开始！\n"+Tip + "\n完成了所有事务并返回目的地");
         LabelText->adjustSize();
 
         ScrollLine->setWidget(SmallW);
@@ -201,12 +239,14 @@ void AlarmNavigation::FindPassPosition()
     {
         FindShortest(GetId(AimPositionList[i - 1]),GetId(AimPositionList[i]));
         Recursion(GetId(AimPositionList[i]));
-        qDebug()<<"AA";
         int BeginPara = 0;
+        bool EndlFlag = 0;
         for(int j = 0;j < Tip.size();j++)
-            if(Tip[j] == '\n')
-                BeginPara ++;
-        Tip = Tip + GetPath(PrePosition,GetId(AimPositionList[i]),BeginPara);
+            if(Tip[j] == '\n'&&EndlFlag == 0)
+                BeginPara ++,EndlFlag = 1;
+            else
+                EndlFlag = 0;
+        Tip = Tip + GetPath(PrePosition,GetId(AimPositionList[i]),BeginPara) + '\n';
     }
 
 }

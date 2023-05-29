@@ -20,6 +20,7 @@ INPUT(
 ./debug\optwidget.o
 ./debug\txtdelete.o
 ./debug\alarmnavigation.o
+./debug\caution.o
 ./debug\qrc_resource.o
 ./debug\moc_login.o
 ./debug\moc_registerwidget.o
@@ -33,4 +34,5 @@ INPUT(
 ./debug\moc_alarmwidget.o
 ./debug\moc_optwidget.o
 ./debug\moc_alarmnavigation.o
+./debug\moc_caution.o
 );

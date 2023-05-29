@@ -3,8 +3,10 @@
 #include "login.h"
 #include "txtadd.h"
 #include "getweek.h"
+#include "adddatatime.h"
 #include "alarmwidget.h"
 #include "listwidget.h"
+#include "caution.h"
 #include "journal.h"
 #include <QPushButton>
 #include <QLabel>
@@ -28,6 +30,7 @@
 int Interval = 2,TotWeek = 19;
 QPushButton *pre=NULL;
 extern QString User;
+extern QString JournalPath;
 extern QString UserCurriculumPath;
 extern QString UserExamPath;
 extern QString UserExtracurricularPath;
@@ -35,12 +38,17 @@ extern QString UserTemporaryPath;
 extern QString UserAlarmPath;
 extern QString MainPath;
 extern QString TimePath;
+QTimer *Tim;
 int ClickedTimes,NowSpeed = 1,Month_Day[13] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
 struct SerTime *ServerTime,BeginTime;
 struct UserData{
     QString Name,IndividualOrCollective,Frequency,Time0,Time1,OfflineOrOnline,Position;
     int BeginWeek,EndWeek,Week,Year,Month,Day;
 };
+struct WeekToDay{
+    int Year,Month,Day;
+};
+extern int GetDateDist(WeekToDay X,WeekToDay Y);
 std::vector<UserData>Student[MAX_TYPE];
 std::map<QTableWidgetItem *,UserData > ItemToStudent;
 QString ChangeLength(QString *T)
@@ -54,8 +62,17 @@ QString GetTimeString()
     H = QString::number(ServerTime->hour);
     M = QString::number(ServerTime->minute);
     S = QString::number(ServerTime->second);
+    WeekToDay X,Y;
+    X.Year = BeginTime.year;
+    X.Month = BeginTime.month;
+    X.Day = BeginTime.day;
+    Y.Year = ServerTime->year;
+    Y.Month = ServerTime->month;
+    Y.Day = ServerTime->day;
+    QString WeekDay[8] = {0,"星期一","星期二","星期三","星期四","星期五","星期六","星期日"};
+    int NowWeekDay = GetDateDist(X,Y) % 7 + 1;
     return QString::number(ServerTime->year)+"."+QString::number(ServerTime->month)+"."+QString::number(ServerTime->day)+" "
-            +ChangeLength(&H)+":"+ChangeLength(&M)+":"+ChangeLength(&S);
+            +ChangeLength(&H)+":"+ChangeLength(&M)+":"+ChangeLength(&S) + " " + WeekDay[NowWeekDay];
 }
 void SetServerTime(SerTime *T)
 {
@@ -119,6 +136,7 @@ void UpdateTime(QLabel *T)
             QString::number(ServerTime->hour)+" "+QString::number(ServerTime->minute)+" "+QString::number(ServerTime->second)+" "+
             QString::number(ServerTime->millisecond);
     AlarmWidget *AW = new AlarmWidget();
+    Caution *CW = new Caution();
     TxtAdd(TimePath,data,0);
     T->setText("服务器时间："+GetTimeString());
     return ;
@@ -444,6 +462,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     //for(int i = 0; i < MAX_TYPE ; i++)
         //Student[i].reserve(MAX_SIZE);
     UserInit();
+    this->setWindowTitle("用户 " + User);
     this->setFixedSize(1400,700);
     int PushButtonWidth=150;
     int PushButtonHeight=60;
@@ -462,11 +481,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(Tim,&QTimer::timeout,[=](){
         UpdateTime(Time);
     });
-
     connect(Speed,&QComboBox::currentTextChanged,[=](){
+        TxtAdd(JournalPath,AddDataTime("用户 " + User + " 修改时间流速为 " +Speed->currentText() + "倍\n"),1);
         NowSpeed = Speed->currentText().toInt();
     });
-
 
     QPushButton *PushButtonCurriculum = new QPushButton("课程管理 ↓",this);
     PushButtonCurriculum->resize(PushButtonWidth,PushButtonHeight);
@@ -482,7 +500,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     W->resize(1200,700);
 
     QLabel *Week = new QLabel(W);
-
 
     QLabel *LabelDate[3];
     for(int i=0;i<3;i++)
@@ -517,10 +534,47 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
             }
         });
     }
+    QPushButton *ExamPushButton = new QPushButton(W);
+    ExamPushButton->setStyleSheet("font-size : 20px");
+    ExamPushButton->setText("查看考试");
+    ExamPushButton->move(1100,200);
+    QWidget *ExamWidget = new QWidget();
+    ExamWidget->setWindowTitle("考试");
+    QTableWidget *ExamTable = new QTableWidget(ExamWidget);
+    ExamWidget->resize(400,600);
+    ExamWidget->setWindowFlags(ExamWidget->windowFlags() | Qt::WindowStaysOnTopHint);
+    ExamWidget->setWindowModality(Qt::ApplicationModal);
+    ExamTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ExamTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    ExamTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ExamTable->resize(ExamWidget->width(),ExamWidget->height());
+    QStringList ExamDataList = GetInformation(UserExamPath).split("\n");
+    int ExamTableRow = 0;
+    for(int i = 0;i < ExamDataList.size();i++)
+        if(ExamDataList[i] != "") ExamTableRow++;
+    ExamTable->setRowCount(ExamTableRow);
+    ExamTable->setColumnCount(4);
+    QStringList ExamHeader;
+    ExamHeader<<"考试名称"<<"考试日期"<<"考试时间"<<"考试地点";
+    ExamTable->setHorizontalHeaderLabels(ExamHeader);
+    ExamTableRow = 0;
+    for(int i = 0;i < ExamDataList.size();i++)
+    {
+        if(ExamDataList[i] == "") continue;
+        QStringList Line = ExamDataList[i].split(" ");
+        ExamTable->setItem(ExamTableRow,0,new QTableWidgetItem(Line[0]));
+        ExamTable->setItem(ExamTableRow,1,new QTableWidgetItem(Line[1] + "年" + Line[2] + "月" + Line[3] + "日"));
+        ExamTable->setItem(ExamTableRow,2,new QTableWidgetItem(Line[4]));
+        ExamTable->setItem(ExamTableRow++,3,new QTableWidgetItem(Line[5]));
+    }
 
-
+    for (int i = 0; i < ExamTable->rowCount(); i++)
+        for (int j = 0; j < ExamTable->columnCount(); j++)
+            ExamTable->item(i,j)->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    connect(ExamPushButton,&QPushButton::clicked,[=](){
+       ExamWidget->show();
+    });
     W->hide();
-
     connect(PushButtonCurriculum,&QPushButton::clicked,[=](){
        SetClickedStyle(PushButtonCurriculum);
        if(ClickedTimes%2==1)
@@ -632,6 +686,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(PushButtonJournal,&QPushButton::clicked,[=](){
         SetClickedStyle(PushButtonJournal);
         W->hide();
+        TxtAdd(JournalPath,AddDataTime("用户 " + User + " 查看了日志\n"),1);
         Journal *Jou = new Journal;
         Jou->show();
     });

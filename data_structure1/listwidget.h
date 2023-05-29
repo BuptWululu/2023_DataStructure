@@ -15,7 +15,7 @@ class ListWidget : public QWidget
 {
     Q_OBJECT
 private:
-    QString WeekName[8]={"星期一","星期二","星期三","星期四","星期五","星期六","星期日"};
+    QString WeekName[8]={0,"星期一","星期二","星期三","星期四","星期五","星期六","星期日"};
 
 public:
     QTableWidget *Table ;

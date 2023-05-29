@@ -44,7 +44,8 @@ SOURCES += \
     alarmwidget.cpp \
     optwidget.cpp \
     txtdelete.cpp \
-    alarmnavigation.cpp
+    alarmnavigation.cpp \
+    caution.cpp
 
 HEADERS += \
         login.h \
@@ -66,7 +67,8 @@ HEADERS += \
     alarmwidget.h \
     optwidget.h \
     txtdelete.h \
-    alarmnavigation.h
+    alarmnavigation.h \
+    caution.h
 
 FORMS += \
         login.ui

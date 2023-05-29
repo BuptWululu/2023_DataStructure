@@ -2,6 +2,7 @@
 #include "txtadd.h"
 #include "txtdelete.h"
 #include "addwidget.h"
+#include "adddatatime.h"
 #include "optwidget.h"
 #include "login.h"
 #include <QTableWidget>
@@ -13,6 +14,7 @@
 #include <algorithm>
 #include <QMessageBox>
 #include <QDir>
+#include <QTimer>
 #include <map>
 #define N 50
 #define MAXITEM 10000
@@ -25,9 +27,12 @@ extern struct SerTime{
     int year=2023,month=2,day=20,hour,minute,second,millisecond;
 }*ServerTime;
 std::map<QString,QString> weekNumber;
+extern QTimer *Tim;
 extern QString UserAlarmPath;
 extern QString UserCurriculumPath;
 extern QString MainPath;
+extern QString JournalPath;
+extern QString User;
 extern QString UserPath;
 extern QString UserExamPath;
 extern QString UserExtracurricularPath;
@@ -191,8 +196,21 @@ void ListWidget::AddItemsChosenComboBox(int ChosenColumn, int MoveWidth, int Mov
             for(int i = 0;i < Table->rowCount();i++)
                 if(Table->item(i,ChosenColumn)->text() == ItemsChosen->currentText())
                     Table->setRowHidden(i, false);
-            //for(int i = 0;i < (int) HashLine[GetHash(ItemsChosen->currentText())].size();i++)
-                //Table->setRowHidden(HashLine[GetHash(ItemsChosen->currentText())][i], false);
+        if(Table->columnCount() == 7)
+        {
+            if(ItemsChosen->currentText() == "ALL")
+                TxtAdd(JournalPath,AddDataTime("用户 " + User + " 查询了所有课外活动\n"),1);
+            else
+                TxtAdd(JournalPath,AddDataTime("用户 " + User + " 查询了课外活动 " + ItemsChosen->currentText() + " \n"),1);
+        }
+        else
+            if(Table->columnCount() == 4)
+            {
+                if(ItemsChosen->currentText() == "ALL")
+                    TxtAdd(JournalPath,AddDataTime("用户 " + User + " 查询了所有临时事务\n"),1);
+                else
+                    TxtAdd(JournalPath,AddDataTime("用户 " + User + " 查询了临时事务 " + ItemsChosen->currentText() + " \n"),1);
+            }
     });
 }
 
@@ -203,6 +221,10 @@ void ListWidget::AddSortPushButton(QString Text, int DateColumn, int TimeColumn,
     SortPushButton->setText(Text);
     connect(SortPushButton,&QPushButton::clicked,[=](){
         qSort(DateColumn,TimeColumn);
+        if(Table->columnCount() == 7)
+            TxtAdd(JournalPath,AddDataTime("用户 " + User + " 为课外活动按照时间排序\n"),1);
+        if(Table->columnCount() == 4)
+            TxtAdd(JournalPath,AddDataTime("用户 " + User + " 为临时事务按照时间排序\n"),1);
     });
 }
 
@@ -214,6 +236,7 @@ void ListWidget::AddSavePushButton(QString Text, QString Path, int MoveWidth, in
     SavePushButton->setStyleSheet("font-size: 20px");
     SavePushButton->adjustSize();
     connect(SavePushButton,&QPushButton::clicked,[=](){
+        TxtAdd(JournalPath,AddDataTime("管理员 " + User + " 修改了课程\n"),1);
         QString Data;
         for(int i = 0;i < Table->rowCount();i++)
         {
@@ -454,12 +477,16 @@ void ListWidget::InsertHash(QString S)
 
 void ListWidget::AddWidgetShow(int Width,int Height)
 {
+    Tim->stop();
     AW->show();
 }
 
 
 void ListWidget::ShowOptWidget(int row, int column)
 {
+    OW->setWindowFlags(OW->windowFlags() | Qt::WindowStaysOnTopHint);
+    OW->setWindowModality(Qt::ApplicationModal);
+    Tim->stop();
     OW->show();
     QString Data;
     for(int i = 0;i < Table->columnCount();i++)
@@ -469,6 +496,7 @@ void ListWidget::ShowOptWidget(int row, int column)
             Data = Data + " ";
     }
     QString TemData = Data;
+    qDebug()<<Data;
     QRegExp Separator = QRegExp("年|月|日");
     QStringList TemList = Data.split(Separator,QString::SkipEmptyParts);
     if(Table->columnCount() == 7)
@@ -479,18 +507,29 @@ void ListWidget::ShowOptWidget(int row, int column)
     OW->disconnect();
     connect(OW,&OptWidget::ItemDelete,[=](){
         if(Table->columnCount() == 7)
+        {
             TxtDelete(UserExtracurricularPath,Data);
+            TxtAdd(JournalPath,AddDataTime("用户 " + User + " 删除了课外活动 " + TemList[0] + " \n"),1);
+        }
         if(Table->columnCount() == 4)
+        {
             TxtDelete(UserTemporaryPath,Data);
+            TxtAdd(JournalPath,AddDataTime("用户 " + User + " 删除了临时事务 " + TemList[0] + " \n"),1);
+        }
+        Tim->start();
     });
     connect(OW,&OptWidget::SetAlarm,[=](){
         int AimRow = FindInsertRow(TemData);
-
         if(AimRow == -1)
         {
             QMessageBox::critical(this, tr("设置失败"),  tr("活动已经开始或结束"));
             return ;
         }
         TxtAdd(UserAlarmPath,Data,2,AimRow);
+        if(Table->columnCount() == 7)
+            TxtAdd(JournalPath,AddDataTime("用户 " + User + " 为课外活动 " + TemList[0] + " 设置了闹钟\n"),1);
+        if(Table->columnCount() == 4)
+            TxtAdd(JournalPath,AddDataTime("用户 " + User + " 为临时事务 " + TemList[0] + " 设置了闹钟\n"),1);
+        Tim->start();
     });
 }

@@ -13,7 +13,7 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
 
 public:
-    QTimer *Tim;
+
 signals:
 
 private slots:

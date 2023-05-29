@@ -20,6 +20,7 @@ INPUT(
 ./release\optwidget.o
 ./release\txtdelete.o
 ./release\alarmnavigation.o
+./release\caution.o
 ./release\qrc_resource.o
 ./release\moc_login.o
 ./release\moc_registerwidget.o
@@ -33,4 +34,5 @@ INPUT(
 ./release\moc_alarmwidget.o
 ./release\moc_optwidget.o
 ./release\moc_alarmnavigation.o
+./release\moc_caution.o
 );

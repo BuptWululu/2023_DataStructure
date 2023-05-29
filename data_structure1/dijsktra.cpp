@@ -1,11 +1,12 @@
 #include <bits/stdc++.h>
 #include <QDebug>
 #include "navigation.h"
+#include "adddatatime.h"
 #define N 200
 extern struct Position Area[N];
 extern struct Edge *Node[N];
 extern int TotArea;
-const double MaxD = 1e18;
+const double MaxD = 1e9;
 double MinDist,ShortestDist[N];
 bool Vis[N];
 int PrePosition[N];
@@ -15,16 +16,18 @@ double GetDist(Position a,Position b)
 }
 double FindShortest(int Start,int End)
 {
-    if(Start == End)
-    {
-        MinDist = 0;
-        return 0;
-    }
     for(int i=1;i<=TotArea;i++)
     {
         ShortestDist[i] = MaxD;
         Vis[i] = PrePosition[i] = 0;
     }
+    if(Start == End)
+    {
+        MinDist = 0;
+        return 0;
+    }
+    if(Start == 0||End == 0)
+        return 0;
     ShortestDist[Start] = 0;
     for(int i=1;i<=TotArea;i++)
     {
@@ -53,7 +56,6 @@ double FindShortest(int Start,int End)
             }
         }
     }
-    //qDebug()<<ShortestDist[End]<<"@@";
     MinDist = ShortestDist[End];
     return MinDist;
 }

@@ -1,0 +1,10 @@
+
+6
+Temporary 取外卖 2023 2 20 12:00 北门外卖柜
+Temporary 取快递 2023 2 20 12:00 京东
+Temporary 购物 2023 2 20 12:00 物美超市
+Extracurricular 跑步 个人活动 2023 2 21 6:00 每天 线下 操场北门
+Extracurricular 跑步 个人活动 2023 2 22 6:00 每天 线下 操场北门
+Extracurricular 练习口语 个人活动 2023 2 28 13:00 单次 线下 图书馆
+Extracurricular 例会 个人活动 2023 3 1 7:00 每周 线下 图书馆
+Extracurricular 例会 个人活动 2023 3 1 20:00 每周 线下 图书馆

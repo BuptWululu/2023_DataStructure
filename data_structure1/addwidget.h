@@ -23,12 +23,15 @@ public:
     void AddDateComboBox(int MoveWidth,int MoveHeight);
     void AddPushButton(int MoveWidth,int MoveHeight,QStringList Name);
     void AddInsertPushButton(int MoveWidth, int MoveHeight, QString PushButtonName, QString FilePath,QString Prefix);
-    bool FindConflict(QStringList InsertItems);
+    void AddExamPushButton(int MoveWidth, int MoveHeight, QString PushButtonName);
+    bool FindConflict(QStringList InsertItems,QString Path = "");
     int FindDateDistance(QStringList InsertItems,QStringList Line,int BeginColumn,int EndColumn);
     int FindEarlierDate(QStringList InsertItems,QStringList Line,int BeginColumn,int EndColumn);
     bool FindCurriculumConflict(QStringList InsertItems,QString FilePath,int BeginColumn,int EndColumn);
     bool FindOtherConflict(QStringList InsertItems,QString FilePath,int BeginColumn,int EndColumn,int FrequencyColumn = -1);
     ~AddWidget();
+protected:
+    void closeEvent(QCloseEvent *event);
 signals:
 
 public slots:

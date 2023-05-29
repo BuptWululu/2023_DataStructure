@@ -1,15 +1,21 @@
 #include "journal.h"
 #include "login.h"
 #include "setlabeltext.h"
+#include "adddatatime.h"
 #include <QString>
 #include <QDebug>
 #include <QLabel>
 #include <QWidget>
 #include <QScrollArea>
+#include <QTimer>
 extern QString JournalPath;
-
+extern QTimer *Tim;
 Journal::Journal(QWidget *parent) : QWidget(parent)
 {
+    this->setWindowTitle("日志");
+    this->setWindowFlags(this->windowFlags() | Qt::WindowStaysOnTopHint);
+    this->setWindowModality(Qt::ApplicationModal);
+    Tim->stop();
     this->setFixedSize(500,700);
     this->setWindowFlags(Qt::WindowStaysOnTopHint);
     QScrollArea *ScrollLine = new QScrollArea(this);
@@ -28,4 +34,9 @@ Journal::Journal(QWidget *parent) : QWidget(parent)
 
     //w->adjustSize();
 
+}
+
+void Journal::closeEvent(QCloseEvent *event)
+{
+    Tim->start();
 }

@@ -12,6 +12,8 @@ public:
     int ChosenRow,ChosenColumn;
     OptWidget(QWidget *parent = nullptr);
     void PushButtonInit(QPushButton *P,QString Text,int MoveWidth,int MoveHeigth,int SizeWidth = 100,int SizeHeigth = 40);
+protected:
+    void closeEvent(QCloseEvent *event);
 signals:
     void ItemDelete();
     void SetAlarm();

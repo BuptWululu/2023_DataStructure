@@ -4,6 +4,7 @@
 #include "getpath.h"
 #include "adddatatime.h"
 #include "txtadd.h"
+#include "adddatatime.h"
 #include <QPixmap>
 #include <QPushButton>
 #include <QPainter>
@@ -16,11 +17,13 @@
 #include <QCompleter>
 #include <QStringList>
 #include <bits/stdc++.h>
+#include <QTimer>
 #define N 200
 #define WordSize 15
 #define Size 1000000
 #define PushButtonWidth 100
 #define PushButtonHeight 50
+extern QTimer *Tim;
 extern QString MapPath;
 extern QString EdgePath;
 extern QString JournalPath;
@@ -28,8 +31,17 @@ extern QString GetInformation(QString Path);
 extern QString MapFirstLine;
 extern QString EdgeFirstLine;
 extern QString User;
+extern QString UserPath,UserCurriculumPath,UserExtracurricularPath,UserTemporaryPath,UserAlarmPath;
 extern int PrePosition[N];
 extern double MinDist;
+struct WeekToDay{
+    int Year,Month,Day;
+};
+extern WeekToDay GetWeekToDay(int Week,int WeekDay);
+extern int GetDateDist(WeekToDay X,WeekToDay Y);
+extern struct SerTime{
+    int year=2023,month=2,day=20,hour,minute,second,millisecond;
+}*ServerTime;
 int TotArea=0;
 int StringHash[Size];
 const int Mod = 999983;
@@ -76,17 +88,106 @@ inline int navigation::GetId(QString S)
     return StringHash[GetHash(S)];
 }
 
+bool navigation::TimeOut(QStringList DataList)
+{
+    int Tem[5]={ServerTime->year,ServerTime->month,ServerTime->day,ServerTime->hour,ServerTime->minute};
+    for(int i = 0;i < 3;i++)
+    {
+        if(Tem[i] < DataList[i].toInt())
+            return 0;
+        if(Tem[i] > DataList[i].toInt())
+            return 1;
+
+    }
+    QStringList Time = DataList[3].split(":");
+    for(int i = 3;i < 5;i++)
+    {
+        if(Tem[i] < Time[i - 3].toInt())
+            return 0;
+        if(Tem[i] > Time[i - 3].toInt())
+            return 1;
+    }
+    return 0;
+}
+
+void navigation::FindAimPosition(int *T, QStringList *Data,QString position)
+{
+    int MinFlag = 0;
+    for(int i = 0;i < 3;i++)
+    {
+        if(MinFlag) break;
+        if(T[i] > (*Data)[i].toInt())
+            MinFlag = 1;
+        if(T[i] < (*Data)[i].toInt())
+            MinFlag = -1;
+    }
+    QStringList Time = (*Data)[3].split(":");
+    for(int i = 3;i < 5;i++)
+    {
+        if(MinFlag) break;
+        if(T[i] > Time[i - 3].toInt())
+            MinFlag = 1;
+        if(T[i] < Time[i - 3].toInt())
+            MinFlag = -1;
+    }
+    if(MinFlag != 1)
+        return;
+    for(int i = 0;i < 3;i++)
+        T[i] = (*Data)[i].toInt();
+    for(int i = 3;i < 5;i++)
+        T[i] = Time[i - 3].toInt();
+    AimPosition = position;
+}
+
+void navigation::GetInformationList()
+{
+    GetOneInformationList(GetInformation(UserCurriculumPath));
+    GetOneInformationList(GetInformation(UserExtracurricularPath));
+    GetOneInformationList(GetInformation(UserTemporaryPath));
+}
+
+void navigation::GetOneInformationList(QString Data)
+{
+    QStringList DataList = Data.split("\n");
+    for(int i = 0;i < DataList.size();i++)
+    {
+        if(DataList[i] == "") continue;
+        bool Added = 0;
+        QStringList Line = DataList[i].split(" ");
+        for(int j = 0;j < InformationList.size();j++)
+            if(InformationList[j] == Line[1])
+            {
+                Added = 1;
+                break;
+            }
+        if(Added) continue;
+        InformationList<<Line[1];
+    }
+}
+
 navigation::navigation(QWidget *parent) : QWidget(parent)
 {
+    this->setWindowTitle("日程导航");
+    this->setWindowFlags(this->windowFlags() | Qt::WindowStaysOnTopHint);
+    this->setWindowModality(Qt::ApplicationModal);
+    Tim->stop();
     LabelStart = new QLabel(this);
     LabelStart->setFont(QFont("宋体",WordSize));
-    LabelStart->setText("起点：");
+    LabelStart->setText("信息：");
     LabelStart->move(540,155);
 
-    LabelEnd = new QLabel(this);
-    LabelEnd->setFont(QFont("宋体",WordSize));
-    LabelEnd->setText("终点：");
-    LabelEnd->move(540,255);
+    LabelBegin = new QLabel(this);
+    LabelBegin->setFont(QFont("宋体",WordSize));
+    LabelBegin->setText("起点：");
+    LabelBegin->move(540,205);
+
+    LineEditBegin = new QLineEdit(this);
+    LineEditBegin->move(600,200);
+    LineEditBegin->resize(200,30);
+
+    LineEditInformation = new QLineEdit(this);
+    LineEditInformation->move(600,150);
+    LineEditInformation->resize(200,30);
 
     LabelInformation = new QLabel(this);
     LabelInformation->resize(500,300);
@@ -112,31 +213,7 @@ navigation::navigation(QWidget *parent) : QWidget(parent)
     PushButtonShort->resize(PushButtonWidth,PushButtonHeight);
     PushButtonShort->move(700,350);
 
-    connect(PushButtonShort,&QPushButton::clicked,[=](){
-        QString from = LineEditFrom->text();
-        QString end = LineEditEnd->text();
-        if(from == end)
-        {
-            QMessageBox::critical(this, tr("错误！"),  tr("起点与终点不能相同！"));
-            WayFlag = 0;
-        }
-        else
-            if(!GetId(from)||!GetId(end))
-            {
-                QMessageBox::critical(this, tr("错误！"),  tr("起点或终点不存在！"));
-                WayFlag = 0;
-            }
-        else
-            WayFlag = 1;
-        this->update();
-    });
-
-    LineEditFrom = new QLineEdit(this);
-    LineEditFrom->resize(200,30);
-    LineEditFrom->move(600,150);
-    LineEditEnd = new QLineEdit(this);
-    LineEditEnd->resize(200,30);
-    LineEditEnd->move(600,250);
+    connect(PushButtonShort,SIGNAL(clicked(bool)),this,SLOT(InformationNavigation()));
 
     QStringList PositionList;
     for(int i=1;i<=TotArea;i++)
@@ -144,10 +221,10 @@ navigation::navigation(QWidget *parent) : QWidget(parent)
         PositionList<<Area[i].Name;
     }
     PositionCompleter = new QCompleter(PositionList);
-    LineEditFrom->setCompleter(PositionCompleter);
-    LineEditEnd->setCompleter(PositionCompleter);
-
-
+    LineEditBegin->setCompleter(PositionCompleter);
+    GetInformationList();
+    QCompleter *InformationCompleter = new QCompleter(InformationList);
+    LineEditInformation->setCompleter(InformationCompleter);
 }
 
 
@@ -196,16 +273,119 @@ void navigation::SetEdge(QString data)
     Connect(End,Start,Congestion.toInt());
     return ;
 }
-void navigation::paintEvent(QPaintEvent *event)
+
+void navigation::closeEvent(QCloseEvent *)
+{
+    Tim->start();
+}
+
+void navigation::InformationNavigation()
+{
+    if(!GetId(LineEditBegin->text()))
+    {
+        QMessageBox::critical(this,tr("错误！"),tr("起点不存在"));
+        return ;
+    }
+    QString Information = LineEditInformation->text();
+    bool In = 0;
+    for(int i = 0;i < InformationList.size();i++)
+    {
+        if(Information == InformationList[i])
+        {
+            In = 1;
+            break;
+        }
+    }
+    if(!In)
+    {
+        QMessageBox::critical(this,tr("错误！"),tr("该日程信息不存在"));
+        return ;
+    }
+    int MinTime[5] = {10000};
+    QString Data = GetInformation(UserCurriculumPath) + GetInformation(UserExtracurricularPath) + GetInformation(UserTemporaryPath);
+    QStringList DataList = Data.split("\n");
+    AimPosition = "";
+    int minDist = 1e9;
+    for(int i = 0;i < DataList.size();i++)
+    {
+        if(DataList[i] == "") continue;
+        QStringList Line = DataList[i].split(" ");
+        if(Line[1] != LineEditInformation->text()) continue;
+        QStringList SwitchControl;
+        SwitchControl<<"Curriculum"<<"Extracurricular"<<"Temporary";
+        QStringList TemList ;
+        switch (SwitchControl.indexOf(Line[0])) {
+        case 0:{
+            WeekToDay X,Y;
+            X.Year = ServerTime->year;
+            X.Month = ServerTime->month;
+            X.Day = ServerTime->day;
+            for(int j = Line[2].toInt();j <= Line[3].toInt();j++)
+            {
+                Y = GetWeekToDay(j,Line[4].toInt());
+                if(Y.Year < X.Year ||(Y.Year == X.Year&&Y.Month < X.Month)||(Y.Year == X.Year&&Y.Month == X.Month&&Y.Day < X.Day))
+                    continue;
+                int Dist = GetDateDist(X,Y);
+                if(Dist > minDist) continue;
+                minDist = Dist;
+                TemList<<QString::number(Y.Year)<<QString::number(Y.Month)<<QString::number(Y.Day)<<Line[5];
+                FindAimPosition(MinTime,&TemList,Line[Line.size() - 1]);
+            }
+            break;
+        }
+        case 1:
+            for(int j = 3;j <= 6;j++)
+                TemList<<Line[j];
+            if(TimeOut(TemList)&&Line[7] != "每天"&&Line[7] != "每周")
+                break;
+            FindAimPosition(MinTime,&TemList,Line[Line.size() - 1]);
+            break;
+        case 2:
+            for(int j = 2;j <= 5;j++)
+                TemList<<Line[j];
+            if(TimeOut(TemList))
+                break;
+            FindAimPosition(MinTime,&TemList,Line[Line.size() - 1]);
+            break;
+        }
+    }
+    if(minDist&&minDist != 1e9)
+    {
+        QString FindTip = "当天没有该日程信息，最近的该日程信息是在" +QString::number(minDist) + "天后，是否导航？";
+        QMessageBox::StandardButton result = QMessageBox::question(this,tr("提示"),FindTip);
+        switch (result) {
+        case QMessageBox::No:
+                AimPosition = "";
+            break;
+        default:
+            break;
+        }
+    }
+    if(LineEditBegin->text() == AimPosition)
+    {
+        QMessageBox::information(this,tr("提示"),tr("起点与最近的日程信息地点相同！"));
+        return ;
+    }
+    if(AimPosition == ""&&minDist == 1e9)
+    {
+        QMessageBox::critical(this,tr("错误！"),tr("该日程信息已结束"));
+        return ;
+    }
+    if(!GetId(AimPosition))
+    {
+        QMessageBox::critical(this,tr("错误！"),tr("终点不存在"));
+        return ;
+    }
+    WayFlag = 1;
+    this->update();
+}
+void navigation::paintEvent(QPaintEvent *)
 {
     QPainter *painter = new QPainter(this);
     QPixmap pix;
     pix.load(":/image/地图.png");
     pix.scaled(this->width(),this->height());
     painter->drawPixmap(0,0,500,this->height(),pix);
-
-
-    //painter->setPen(QPen(Qt::red,4)); //取消外围黑圈
     painter->setBrush(QColor(255,0,0));
     for(int i=1;i<=TotArea;i++)
     {
@@ -219,8 +399,6 @@ void navigation::paintEvent(QPaintEvent *event)
     }
     QPen Pen(Qt::red,3,Qt::SolidLine,Qt::RoundCap,Qt::RoundJoin);
     painter->setPen(Pen);
-    if(WayFlag==0)
-        return ;
     QString Data=GetInformation(EdgePath);
     QString line="";
     for(int pos=0;pos<Data.size();pos++)
@@ -235,21 +413,21 @@ void navigation::paintEvent(QPaintEvent *event)
             line="";
         }
     }
-    if(WayFlag==1)
+    if(WayFlag == 0)
     {
-        QString from = LineEditFrom->text();
-        QString end = LineEditEnd->text();
-        FindShortest(GetId(from),GetId(end));
-        int PaintNow=GetId(end);
-        QString Pass = GetPath(PrePosition,PaintNow);
-        TxtAdd(JournalPath,AddDataTime("用户 "+User+" 进行了从 "+from+" 到 "+end+" 的最短距离导航\n"
-                                       +Pass),1);
-        SetLabelText(LabelInformation,"导航开始！\n"+Pass);
-        while (PrePosition[PaintNow]) {
-            painter->drawLine(Area[PaintNow].x,Area[PaintNow].y,
-                              Area[PrePosition[PaintNow]].x,Area[PrePosition[PaintNow]].y);
-            PaintNow = PrePosition[PaintNow];
-        }
-        WayFlag = 0;
+        painter->end();
+        return ;
     }
+    FindShortest(GetId(LineEditBegin->text()),GetId(AimPosition));
+    int PaintNow=GetId(AimPosition);
+    QString Pass = GetPath(PrePosition,PaintNow);
+    TxtAdd(JournalPath,AddDataTime("用户 "+User+" 进行了从 "+LineEditBegin->text()+" 到 "+AimPosition+" 的最短距离导航\n"),1);
+    SetLabelText(LabelInformation,"导航开始！\n"+Pass + "\n到达目的地: " + AimPosition);
+    while (PrePosition[PaintNow]) {
+        painter->drawLine(Area[PaintNow].x,Area[PaintNow].y,
+                          Area[PrePosition[PaintNow]].x,Area[PrePosition[PaintNow]].y);
+        PaintNow = PrePosition[PaintNow];
+    }
+    painter->end();
+    WayFlag = 0;
 }

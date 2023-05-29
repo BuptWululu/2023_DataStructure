@@ -25,6 +25,8 @@ public:
     void Recursion(int Now);
     void Init();
     void LineEditInit(QLineEdit *L,int MoveWidth,int MoveHeight,int SizeWidth = 200,int SizeHeight = 30);
+protected:
+    void closeEvent(QCloseEvent *event);
 signals:
 
 public slots:

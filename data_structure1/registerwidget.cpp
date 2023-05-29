@@ -1,6 +1,7 @@
 #include "registerwidget.h"
 #include "login.h"
 #include "addfile.h"
+#include "adddatatime.h"
 #include "txtadd.h"
 #include <QPushButton>
 #include <QLabel>
@@ -14,6 +15,7 @@
 extern QString InformationPath;
 extern QString MainPath;
 extern QString UserCurriculumPath;
+extern QString JournalPath;
 extern QString UserExamPath;
 bool CmpUser(QString LineData,QString UserName)
 {
@@ -112,7 +114,7 @@ RegisterWidget::RegisterWidget(QWidget *parent) : QWidget(parent)
         QString User = LineEditUser->text();
         QString Pwd = LineEditPwd->text();
         QString PwdAgain =LineEditPwdAgain->text();
-        if(!IsRight(User)||!IsRight(Pwd))
+        if(!IsRight(Pwd))
         {
             QMessageBox::critical(this, tr("注册失败"),  tr("用户名或密码不符合要求"));
         }
@@ -134,6 +136,7 @@ RegisterWidget::RegisterWidget(QWidget *parent) : QWidget(parent)
                 AddFile(MainPath+"User\\"+User+"\\Exam.txt");
                 AddFile(MainPath+"User\\"+User+"\\Alarm.txt","\n2\n");
                 TxtAdd(InformationPath,User+" "+Pwd+" 0\n",1);
+                TxtAdd(JournalPath,AddDataTime("用户 "+ User + " 注册成功\n"),1);
                 LineEditUser->clear();
                 emit this->back_login();
             }

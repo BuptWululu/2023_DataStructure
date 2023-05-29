@@ -2,6 +2,7 @@
 #include "ui_login.h"
 #include "registerwidget.h"
 #include "adddatatime.h"
+#include "adddatatime.h"
 #include "mainwindow.h"
 #include "rootwindow.h"
 #include "txtadd.h"
@@ -51,6 +52,7 @@ bool FindUserPwd(QString Information,QString UserName,QString UserPwd)
 
     for(int i=0;i<LineData.size();i++)
     {
+        if(LineData[i] == "") continue;
         if(CmpUserPwd(LineData[i],UserName,UserPwd)==true)
             return true;
     }
